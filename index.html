@@ -2171,21 +2171,35 @@
     }
     
     // Navigation functions
-    function nextQuestion() {
-      if (currentQuestionIndex < questions.length - 1) {
-        currentQuestionIndex++;
-        renderCurrentQuestion();
-        updateControls();
-      }
-    }
+    // Updated nextQuestion function
+function nextQuestion() {
+  if (currentQuestionIndex < questions.length - 1) {
+    currentQuestionIndex++;
+    // Reset showing answers state
+    showingAnswers = false;
+    const btn = document.getElementById('toggle-answers-btn');
+    if (btn) btn.textContent = 'הצג תשובות';
+    // Hide score display when navigating
+    document.getElementById('score-display').style.display = 'none';
+    renderCurrentQuestion();
+    updateControls();
+  }
+}
     
-    function prevQuestion() {
-      if (currentQuestionIndex > 0) {
-        currentQuestionIndex--;
-        renderCurrentQuestion();
-        updateControls();
-      }
-    }
+    // Updated prevQuestion function
+function prevQuestion() {
+  if (currentQuestionIndex > 0) {
+    currentQuestionIndex--;
+    // Reset showing answers state
+    showingAnswers = false;
+    const btn = document.getElementById('toggle-answers-btn');
+    if (btn) btn.textContent = 'הצג תשובות';
+    // Hide score display when navigating
+    document.getElementById('score-display').style.display = 'none';
+    renderCurrentQuestion();
+    updateControls();
+  }
+}
     
     // Update navigation button states
     function updateControls() {
@@ -2210,24 +2224,31 @@
     }
     
     // Generate and update the sidebar navigation
-    function generateSidebarNavigation() {
-      const navContainer = document.getElementById('question-nav');
-      navContainer.innerHTML = '';
-      
-      // Create buttons for all questions
-      for (let i = 0; i < questions.length; i++) {
-        const navItem = document.createElement('div');
-        navItem.className = 'nav-item';
-        navItem.textContent = i + 1;
-        navItem.addEventListener('click', function() {
-          currentQuestionIndex = i;
-          renderCurrentQuestion();
-          updateControls();
-        });
-        
-        navContainer.appendChild(navItem);
-      }
-    }
+    // Updated generateSidebarNavigation function
+function generateSidebarNavigation() {
+  const navContainer = document.getElementById('question-nav');
+  navContainer.innerHTML = '';
+  
+  // Create buttons for all questions
+  for (let i = 0; i < questions.length; i++) {
+    const navItem = document.createElement('div');
+    navItem.className = 'nav-item';
+    navItem.textContent = i + 1;
+    navItem.addEventListener('click', function() {
+      currentQuestionIndex = i;
+      // Reset showing answers state when navigating via sidebar
+      showingAnswers = false;
+      const btn = document.getElementById('toggle-answers-btn');
+      if (btn) btn.textContent = 'הצג תשובות';
+      // Hide score display when navigating
+      document.getElementById('score-display').style.display = 'none';
+      renderCurrentQuestion();
+      updateControls();
+    });
+    
+    navContainer.appendChild(navItem);
+  }
+}
     
     // Update the sidebar navigation to highlight current question
     function updateSidebarNavigation() {
@@ -2364,21 +2385,29 @@
     }
     
     // Return to the exam
-    function returnToExam(questionIndex = null) {
-      // If a question index is provided, go to that question
-      if (questionIndex !== null) {
-        currentQuestionIndex = questionIndex;
-      }
-      
-      // Hide results and show question
-      document.getElementById('results-container').style.display = 'none';
-      document.getElementById('question-container').style.display = 'block';
-      document.getElementById('controls').style.display = 'flex';
-      
-      // Update the current question
-      renderCurrentQuestion();
-      updateControls();
-    }
+    // Also update the returnToExam function to reset the showing answers state
+function returnToExam(questionIndex = null) {
+  // If a question index is provided, go to that question
+  if (questionIndex !== null) {
+    currentQuestionIndex = questionIndex;
+  }
+  
+  // Reset showing answers state
+  showingAnswers = false;
+  const btn = document.getElementById('toggle-answers-btn');
+  if (btn) btn.textContent = 'הצג תשובות';
+  // Hide score display
+  document.getElementById('score-display').style.display = 'none';
+  
+  // Hide results and show question
+  document.getElementById('results-container').style.display = 'none';
+  document.getElementById('question-container').style.display = 'block';
+  document.getElementById('controls').style.display = 'flex';
+  
+  // Update the current question
+  renderCurrentQuestion();
+  updateControls();
+}
     
     // Set the mode (exam or study)
     function setMode(newMode) {
