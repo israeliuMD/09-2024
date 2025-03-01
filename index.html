@@ -2054,23 +2054,23 @@
       `;
       
       if (question.image) {
-        questionHTML += `
-          <div class="image-container">
-            <img src="${question.image}" alt="תמונה לשאלה ${question.id}">
-          </div>
-        `;
-      } else if (question.multipleImages) {
-        questionHTML += `<div class="multiple-images-container">`;
-        for (let i = 0; i < question.images.length; i++) {
-          questionHTML += `
-            <div class="image-container">
-              <div class="image-label">${question.imageLabels[i]}</div>
-              <img src="${question.images[i]}" alt="תמונה ${i+1} לשאלה ${question.id}">
-            </div>
-          `;
-        }
-        questionHTML += `</div>`;
-      }
+  questionHTML += `
+    <div class="image-container">
+      <img src="/images/${question.image}" alt="תמונה לשאלה ${question.id}">
+    </div>
+  `;
+} else if (question.multipleImages) {
+  questionHTML += `<div class="multiple-images-container">`;
+  for (let i = 0; i < question.images.length; i++) {
+    questionHTML += `
+      <div class="image-container">
+        <div class="image-label">${question.imageLabels[i]}</div>
+        <img src="/images/${question.images[i]}" alt="תמונה ${i+1} לשאלה ${question.id}">
+      </div>
+    `;
+  }
+  questionHTML += `</div>`;
+}
       
       questionHTML += '<div class="options">';
       
@@ -2118,23 +2118,23 @@
         `;
         
         if (question.image) {
-          questionHTML += `
-            <div class="image-container">
-              <img src="${question.image}" alt="תמונה לשאלה ${question.id}">
-            </div>
-          `;
-        } else if (question.multipleImages) {
-          questionHTML += `<div class="multiple-images-container">`;
-          for (let i = 0; i < question.images.length; i++) {
-            questionHTML += `
-              <div class="image-container">
-                <div class="image-label">${question.imageLabels[i]}</div>
-                <img src="${question.images[i]}" alt="תמונה ${i+1} לשאלה ${question.id}">
-              </div>
-            `;
-          }
-          questionHTML += `</div>`;
-        }
+  questionHTML += `
+    <div class="image-container">
+      <img src="/images/${question.image}" alt="תמונה לשאלה ${question.id}">
+    </div>
+  `;
+} else if (question.multipleImages) {
+  questionHTML += `<div class="multiple-images-container">`;
+  for (let i = 0; i < question.images.length; i++) {
+    questionHTML += `
+      <div class="image-container">
+        <div class="image-label">${question.imageLabels[i]}</div>
+        <img src="/images/${question.images[i]}" alt="תמונה ${i+1} לשאלה ${question.id}">
+      </div>
+    `;
+  }
+  questionHTML += `</div>`;
+}
         
         questionHTML += '<div class="options">';
         
