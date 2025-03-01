@@ -2054,23 +2054,23 @@
       `;
       
       if (question.image) {
-  questionHTML += `
-    <div class="image-container">
-      <img src="/09-2024/images/${question.image}" alt="תמונה לשאלה ${question.id}">
-    </div>
-  `;
-} else if (question.multipleImages) {
-  questionHTML += `<div class="multiple-images-container">`;
-  for (let i = 0; i < question.images.length; i++) {
-    questionHTML += `
-      <div class="image-container">
-        <div class="image-label">${question.imageLabels[i]}</div>
-        <img src="/09-2024/images/${question.images[i]}" alt="תמונה ${i+1} לשאלה ${question.id}">
-      </div>
-    `;
-  }
-  questionHTML += `</div>`;
-}
+        questionHTML += `
+          <div class="image-container">
+            <img src="/09-2024/images/${question.image}" alt="תמונה לשאלה ${question.id}">
+          </div>
+        `;
+      } else if (question.multipleImages) {
+        questionHTML += `<div class="multiple-images-container">`;
+        for (let i = 0; i < question.images.length; i++) {
+          questionHTML += `
+            <div class="image-container">
+              <div class="image-label">${question.imageLabels[i]}</div>
+              <img src="/09-2024/images/${question.images[i]}" alt="תמונה ${i+1} לשאלה ${question.id}">
+            </div>
+          `;
+        }
+        questionHTML += `</div>`;
+      }
       
       questionHTML += '<div class="options">';
       
@@ -2118,23 +2118,23 @@
         `;
         
         if (question.image) {
-  questionHTML += `
-    <div class="image-container">
-      <img src="/09-2024/images/${question.image}" alt="תמונה לשאלה ${question.id}">
-    </div>
-  `;
-} else if (question.multipleImages) {
-  questionHTML += `<div class="multiple-images-container">`;
-  for (let i = 0; i < question.images.length; i++) {
-    questionHTML += `
-      <div class="image-container">
-        <div class="image-label">${question.imageLabels[i]}</div>
-        <img src="/09-2024/images/${question.images[i]}" alt="תמונה ${i+1} לשאלה ${question.id}">
-      </div>
-    `;
-  }
-  questionHTML += `</div>`;
-}
+          questionHTML += `
+            <div class="image-container">
+              <img src="/09-2024/images/${question.image}" alt="תמונה לשאלה ${question.id}">
+            </div>
+          `;
+        } else if (question.multipleImages) {
+          questionHTML += `<div class="multiple-images-container">`;
+          for (let i = 0; i < question.images.length; i++) {
+            questionHTML += `
+              <div class="image-container">
+                <div class="image-label">${question.imageLabels[i]}</div>
+                <img src="/09-2024/images/${question.images[i]}" alt="תמונה ${i+1} לשאלה ${question.id}">
+              </div>
+            `;
+          }
+          questionHTML += `</div>`;
+        }
         
         questionHTML += '<div class="options">';
         
@@ -2171,8 +2171,7 @@
     }
     
     // Navigation functions
-    // Updated nextQuestion function
-function nextQuestion() {
+    function nextQuestion() {
   if (currentQuestionIndex < questions.length - 1) {
     currentQuestionIndex++;
     // Reset showing answers state
@@ -2183,11 +2182,10 @@ function nextQuestion() {
     document.getElementById('score-display').style.display = 'none';
     renderCurrentQuestion();
     updateControls();
-  }
-}
+      }
+    }
     
-    // Updated prevQuestion function
-function prevQuestion() {
+    function prevQuestion() {
   if (currentQuestionIndex > 0) {
     currentQuestionIndex--;
     // Reset showing answers state
@@ -2198,8 +2196,8 @@ function prevQuestion() {
     document.getElementById('score-display').style.display = 'none';
     renderCurrentQuestion();
     updateControls();
-  }
-}
+      }
+    }
     
     // Update navigation button states
     function updateControls() {
@@ -2224,12 +2222,11 @@ function prevQuestion() {
     }
     
     // Generate and update the sidebar navigation
-    // Updated generateSidebarNavigation function
-function generateSidebarNavigation() {
+    function generateSidebarNavigation() {
   const navContainer = document.getElementById('question-nav');
   navContainer.innerHTML = '';
-  
-  // Create buttons for all questions
+      
+      // Create buttons for all questions
   for (let i = 0; i < questions.length; i++) {
     const navItem = document.createElement('div');
     navItem.className = 'nav-item';
@@ -2385,8 +2382,7 @@ function generateSidebarNavigation() {
     }
     
     // Return to the exam
-    // Also update the returnToExam function to reset the showing answers state
-function returnToExam(questionIndex = null) {
+    function returnToExam(questionIndex = null) {
   // If a question index is provided, go to that question
   if (questionIndex !== null) {
     currentQuestionIndex = questionIndex;
