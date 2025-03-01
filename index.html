@@ -251,6 +251,99 @@
       .no-print {
         display: none;
       }
+	    /* Mobile responsiveness */
+@media screen and (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    padding: 10px 5px;
+    margin-bottom: 10px;
+  }
+  
+  .question-nav {
+    grid-template-columns: repeat(10, 1fr);
+    gap: 5px;
+  }
+  
+  .nav-item {
+    padding: 5px 0;
+    font-size: 12px;
+  }
+  
+  .main-content {
+    margin-right: 0;
+    padding: 15px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .question-container {
+    padding: 15px;
+  }
+  
+  .image-container img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  .multiple-images-container {
+    flex-direction: column;
+  }
+  
+  .option {
+    padding: 8px;
+  }
+  
+  .option-label {
+    min-width: 15px;
+  }
+  
+  .controls {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .results-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* Small phones */
+@media screen and (max-width: 480px) {
+  .question-nav {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  
+  h1 {
+    font-size: 1.2em;
+  }
+  
+  .results-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Fix for iPhone and other mobile devices */
+@media screen and (max-width: 390px) {
+  .main-content {
+    padding: 10px;
+  }
+  
+  .question-container {
+    padding: 10px;
+  }
+  
+  button {
+    padding: 6px 12px;
+    font-size: 0.9em;
+  }
+}
     }
   </style>
 </head>
@@ -2171,34 +2264,33 @@
     }
     
     // Navigation functions
-    function nextQuestion() {
+    // Updated nextQuestion function
+function nextQuestion() {
   if (currentQuestionIndex < questions.length - 1) {
     currentQuestionIndex++;
-    // Reset showing answers state
-    showingAnswers = false;
-    const btn = document.getElementById('toggle-answers-btn');
-    if (btn) btn.textContent = 'הצג תשובות';
-    // Hide score display when navigating
-    document.getElementById('score-display').style.display = 'none';
+    resetShowingAnswers(); // Use the helper function
     renderCurrentQuestion();
     updateControls();
-      }
-    }
+  }
+}
     
-    function prevQuestion() {
+    // Updated prevQuestion function
+function prevQuestion() {
   if (currentQuestionIndex > 0) {
     currentQuestionIndex--;
-    // Reset showing answers state
-    showingAnswers = false;
-    const btn = document.getElementById('toggle-answers-btn');
-    if (btn) btn.textContent = 'הצג תשובות';
-    // Hide score display when navigating
-    document.getElementById('score-display').style.display = 'none';
+    resetShowingAnswers(); // Use the helper function
     renderCurrentQuestion();
     updateControls();
-      }
-    }
-    
+  }
+}
+
+	  // Create a helper function to reset showing answers state
+function resetShowingAnswers() {
+  showingAnswers = false;
+  const btn = document.getElementById('toggle-answers-btn');
+  if (btn) btn.textContent = 'הצג תשובות';
+  document.getElementById('score-display').style.display = 'none';
+}
     // Update navigation button states
     function updateControls() {
       const prevBtn = document.getElementById('prev-btn');
@@ -2222,23 +2314,19 @@
     }
     
     // Generate and update the sidebar navigation
-    function generateSidebarNavigation() {
+    // Updated generateSidebarNavigation function
+function generateSidebarNavigation() {
   const navContainer = document.getElementById('question-nav');
   navContainer.innerHTML = '';
-      
-      // Create buttons for all questions
+  
+  // Create buttons for all questions
   for (let i = 0; i < questions.length; i++) {
     const navItem = document.createElement('div');
     navItem.className = 'nav-item';
     navItem.textContent = i + 1;
     navItem.addEventListener('click', function() {
       currentQuestionIndex = i;
-      // Reset showing answers state when navigating via sidebar
-      showingAnswers = false;
-      const btn = document.getElementById('toggle-answers-btn');
-      if (btn) btn.textContent = 'הצג תשובות';
-      // Hide score display when navigating
-      document.getElementById('score-display').style.display = 'none';
+      resetShowingAnswers(); // Use the helper function
       renderCurrentQuestion();
       updateControls();
     });
@@ -2382,18 +2470,14 @@
     }
     
     // Return to the exam
-    function returnToExam(questionIndex = null) {
+    // Updated returnToExam function
+function returnToExam(questionIndex = null) {
   // If a question index is provided, go to that question
   if (questionIndex !== null) {
     currentQuestionIndex = questionIndex;
   }
   
-  // Reset showing answers state
-  showingAnswers = false;
-  const btn = document.getElementById('toggle-answers-btn');
-  if (btn) btn.textContent = 'הצג תשובות';
-  // Hide score display
-  document.getElementById('score-display').style.display = 'none';
+  resetShowingAnswers(); // Use the helper function
   
   // Hide results and show question
   document.getElementById('results-container').style.display = 'none';
