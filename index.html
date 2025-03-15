@@ -2521,7 +2521,518 @@ function returnToExam(questionIndex = null) {
     window.onload = function() {
       generateSidebarNavigation();
       init();
-    };
+    }
+	    
+	// Add this code right before the closing +script+ tag in your HTML file
+
+// Object to store notes for each question
+let questionNotes = {};
+let notesVisible = false;
+
+// Load notes from localStorage when the page loads
+// Modify the loadNotes and saveNotes functions to use more explicit exam identifiers
+
+// Load notes from localStorage when the page loads
+function loadNotes() {
+  // Create a more specific exam identifier based on the URL path
+  const examId = window.location.pathname.split('/').filter(Boolean).join('-');
+  
+  // If there's no specific path, use the title as fallback
+  const finalExamId = examId || document.title.replace(/\s+/g, '-').toLowerCase();
+  
+  console.log(`Loading notes for exam: ${finalExamId}`); // For debugging
+  
+  const savedNotes = localStorage.getItem(`examNotes-${finalExamId}`);
+  
+  if (savedNotes) {
+    try {
+      questionNotes = JSON.parse(savedNotes);
+    } catch (e) {
+      questionNotes = {};
+    }
+  } else {
+    questionNotes = {};
+  }
+}
+
+function saveNotes() {
+  // Use the same identifier creation logic as in loadNotes
+  const examId = window.location.pathname.split('/').filter(Boolean).join('-');
+  const finalExamId = examId || document.title.replace(/\s+/g, '-').toLowerCase();
+  
+  localStorage.setItem(`examNotes-${finalExamId}`, JSON.stringify(questionNotes));
+  console.log(`Saving notes for exam: ${finalExamId}`); // For debugging
+}
+// Add the left sidebar notes panel
+function addNotesPanel() {
+  // Create notes toggle button at the top left
+  const toggleButton = document.createElement('button');
+  toggleButton.id = 'toggle-notes-btn';
+  toggleButton.textContent = 'פתח הערות';
+  toggleButton.style.position = 'fixed';
+  toggleButton.style.top = '10px';
+  toggleButton.style.left = '10px';
+  toggleButton.style.zIndex = '1000';
+  toggleButton.style.padding = '8px 16px';
+  toggleButton.style.backgroundColor = '#4a90e2';
+  toggleButton.style.color = 'white';
+  toggleButton.style.border = 'none';
+  toggleButton.style.borderRadius = '4px';
+  toggleButton.style.cursor = 'pointer';
+  toggleButton.style.fontFamily = 'Arial, sans-serif';
+  toggleButton.onclick = toggleNotes;
+  
+  // Create the notes sidebar
+  const notesSidebar = document.createElement('div');
+  notesSidebar.id = 'notes-sidebar';
+  notesSidebar.style.width = '300px';
+  notesSidebar.style.height = '100vh';
+  notesSidebar.style.position = 'fixed';
+  notesSidebar.style.top = '0';
+  notesSidebar.style.left = '0';
+  notesSidebar.style.backgroundColor = '#f8f8f8';
+  notesSidebar.style.boxShadow = '2px 0 5px rgba(0,0,0,0.1)';
+  notesSidebar.style.padding = '60px 20px 20px 20px';
+  notesSidebar.style.overflowY = 'auto';
+  notesSidebar.style.zIndex = '900';
+  notesSidebar.style.transform = 'translateX(-100%)';
+  notesSidebar.style.transition = 'transform 0.3s ease-in-out';
+  
+  // Create the notes title
+  const notesTitle = document.createElement('div');
+  notesTitle.textContent = 'הערות לשאלה';
+  notesTitle.style.fontWeight = 'bold';
+  notesTitle.style.fontSize = '1.2em';
+  notesTitle.style.marginBottom = '10px';
+  notesTitle.style.textAlign = 'center';
+  notesTitle.style.fontFamily = 'Arial, sans-serif';
+  notesSidebar.appendChild(notesTitle);
+  
+  // Create close button inside the sidebar
+  const closeButton = document.createElement('button');
+  closeButton.textContent = 'סגור';
+  closeButton.style.position = 'absolute';
+  closeButton.style.top = '15px';
+  closeButton.style.right = '15px';
+  closeButton.style.padding = '5px 10px';
+  closeButton.style.backgroundColor = '#e0e0e0';
+  closeButton.style.border = 'none';
+  closeButton.style.borderRadius = '4px';
+  closeButton.style.cursor = 'pointer';
+  closeButton.style.fontFamily = 'Arial, sans-serif';
+  closeButton.onclick = closeNotes;
+  notesSidebar.appendChild(closeButton);
+  
+  // Create the notes content div
+  const notesContent = document.createElement('div');
+  notesContent.id = 'notes-content';
+  notesSidebar.appendChild(notesContent);
+  
+  // Add elements to the body
+  document.body.appendChild(toggleButton);
+  document.body.appendChild(notesSidebar);
+}
+
+// Toggle the notes panel visibility
+function toggleNotes() {
+  const notesSidebar = document.getElementById('notes-sidebar');
+  const toggleButton = document.getElementById('toggle-notes-btn');
+  
+  if (notesVisible) {
+    closeNotes();
+  } else {
+    notesSidebar.style.transform = 'translateX(0)';
+    toggleButton.textContent = 'סגור הערות';
+    notesVisible = true;
+    updateNotesContent();
+  }
+}
+
+// Close the notes panel
+function closeNotes() {
+  const notesSidebar = document.getElementById('notes-sidebar');
+  const toggleButton = document.getElementById('toggle-notes-btn');
+  
+  notesSidebar.style.transform = 'translateX(-100%)';
+  toggleButton.textContent = 'פתח הערות';
+  notesVisible = false;
+}
+
+// Update the notes content based on the current question
+function updateNotesContent() {
+  if (!notesVisible) return;
+  
+  const notesContent = document.getElementById('notes-content');
+  const question = questions[currentQuestionIndex];
+  const questionId = question.id;
+  
+  // Clear previous content
+  notesContent.innerHTML = '';
+  
+  // Create the question number display
+  const questionNumber = document.createElement('div');
+  questionNumber.textContent = `שאלה ${questionId}`;
+  questionNumber.style.fontWeight = 'bold';
+  questionNumber.style.marginBottom = '10px';
+  questionNumber.style.textAlign = 'center';
+  questionNumber.style.fontFamily = 'Arial, sans-serif';
+  notesContent.appendChild(questionNumber);
+  
+  // Create the notes textarea
+  const notesTextarea = document.createElement('textarea');
+  notesTextarea.id = `notes-${questionId}`;
+  notesTextarea.value = questionNotes[questionId] || '';
+  notesTextarea.placeholder = 'רשום את ההערות שלך כאן...';
+  notesTextarea.style.width = '100%';
+  notesTextarea.style.height = 'calc(100vh - 150px)';
+  notesTextarea.style.padding = '10px';
+  notesTextarea.style.borderRadius = '4px';
+  notesTextarea.style.border = '1px solid #ddd';
+  notesTextarea.style.fontFamily = 'Arial, sans-serif';
+  notesTextarea.style.fontSize = '1em';
+  notesTextarea.style.direction = 'rtl';
+  notesTextarea.style.resize = 'none';
+  notesTextarea.style.boxSizing = 'border-box';
+  
+  // Add event listener to save notes when text changes
+  notesTextarea.addEventListener('input', function() {
+    questionNotes[questionId] = this.value;
+    saveNotes();
+    updateNavIndicators();
+  });
+  
+  notesContent.appendChild(notesTextarea);
+}
+
+// Add notes to study mode
+function addNotesToStudyMode() {
+  const questionContainers = document.querySelectorAll('.question-container');
+  questionContainers.forEach(container => {
+    const questionNumberElem = container.querySelector('.question-number');
+    if (questionNumberElem) {
+      const questionIdMatch = questionNumberElem.textContent.match(/\d+/);
+      if (questionIdMatch) {
+        const questionId = parseInt(questionIdMatch[0]);
+        const questionNoteText = questionNotes[questionId] || '';
+        
+        // Remove any existing notes container
+        const existingNotes = container.querySelector('.study-notes-container');
+        if (existingNotes) {
+          existingNotes.remove();
+        }
+        
+        // Add notes container if there are notes
+        if (questionNoteText.trim()) {
+          const notesContainer = document.createElement('div');
+          notesContainer.className = 'study-notes-container';
+          notesContainer.style.marginTop = '20px';
+          notesContainer.style.padding = '10px';
+          notesContainer.style.backgroundColor = '#f0f8ff';
+          notesContainer.style.borderRadius = '8px';
+          notesContainer.style.border = '1px solid #b0c4de';
+          
+          notesContainer.innerHTML = `
+            <div style="font-weight: bold; margin-bottom: 5px; font-family: Arial, sans-serif;">הערות אישיות:</div>
+            <div style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #fff; direction: rtl; white-space: pre-wrap; font-family: Arial, sans-serif;">
+              ${questionNoteText}
+            </div>
+          `;
+          
+          container.appendChild(notesContainer);
+        }
+      }
+    }
+  });
+}
+
+// Add indicators to navigation buttons for questions with notes
+function updateNavIndicators() {
+  const navItems = document.querySelectorAll('.nav-item');
+  
+  navItems.forEach((item, index) => {
+    const questionId = index + 1;
+    
+    // Remove any existing indicators
+    const existingIndicator = item.querySelector('.note-indicator');
+    if (existingIndicator) {
+      existingIndicator.remove();
+    }
+    
+    // Add indicator if there are notes for this question
+    if (questionNotes[questionId] && questionNotes[questionId].trim() !== '') {
+      const indicator = document.createElement('div');
+      indicator.className = 'note-indicator';
+      indicator.style.position = 'absolute';
+      indicator.style.top = '3px';
+      indicator.style.right = '3px';
+      indicator.style.width = '6px';
+      indicator.style.height = '6px';
+      indicator.style.borderRadius = '50%';
+      indicator.style.backgroundColor = '#ff9800';
+      
+      // Make sure the nav item has relative positioning for absolute positioning of the indicator
+      item.style.position = 'relative';
+      item.appendChild(indicator);
+    }
+  });
+}
+
+// Create a page to display all notes for printing
+function createPrintableNotesPage() {
+  // Create a new window for the printable notes
+  const printWindow = window.open('', '_blank');
+  
+  // Write the HTML content for the printable page
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html dir="rtl">
+    <head>
+      <title> 09-2024 הערות לבחינה</title>
+      <meta charset="UTF-8">
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          padding: 20px;
+          direction: rtl;
+        }
+        .notes-title {
+          text-align: center;
+          font-size: 24px;
+          margin-bottom: 30px;
+          font-weight: bold;
+        }
+        .question-notes {
+          margin-bottom: 20px;
+          padding: 15px;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          break-inside: avoid;
+        }
+        .question-number {
+          font-weight: bold;
+          margin-bottom: 10px;
+          font-size: 18px;
+          border-bottom: 1px solid #eee;
+          padding-bottom: 5px;
+        }
+        .notes-content {
+          white-space: pre-wrap;
+          padding: 10px;
+          background-color: #f9f9f9;
+          border-radius: 4px;
+          min-height: 40px;
+        }
+        @media print {
+          body {
+            font-size: 12pt;
+          }
+          .no-print {
+            display: none;
+          }
+          .question-notes {
+            page-break-inside: avoid;
+          }
+        }
+        .print-btn {
+          display: block;
+          margin: 20px auto;
+          padding: 10px 20px;
+          background-color: #4a90e2;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 16px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="notes-title">09-2024 הערות לבחינה</div>
+      <button class="print-btn no-print" onclick="window.print()">הדפס הערות</button>
+      <div id="notes-container"></div>
+      <button class="print-btn no-print" onclick="window.print()">הדפס הערות</button>
+    </body>
+    </html>
+  `);
+  
+  // Add all notes to the container
+  const notesContainer = printWindow.document.getElementById('notes-container');
+  let hasNotes = false;
+  
+  // Sort question IDs numerically
+  const questionIds = Object.keys(questionNotes)
+    .map(id => parseInt(id))
+    .sort((a, b) => a - b);
+  
+  for (const questionId of questionIds) {
+    const noteText = questionNotes[questionId];
+    if (noteText && noteText.trim()) {
+      hasNotes = true;
+      
+      const questionNotesDiv = printWindow.document.createElement('div');
+      questionNotesDiv.className = 'question-notes';
+      
+      const questionNumberDiv = printWindow.document.createElement('div');
+      questionNumberDiv.className = 'question-number';
+      questionNumberDiv.textContent = `שאלה ${questionId}`;
+      
+      const notesContentDiv = printWindow.document.createElement('div');
+      notesContentDiv.className = 'notes-content';
+      notesContentDiv.textContent = noteText;
+      
+      questionNotesDiv.appendChild(questionNumberDiv);
+      questionNotesDiv.appendChild(notesContentDiv);
+      notesContainer.appendChild(questionNotesDiv);
+    }
+  }
+  
+  // If no notes exist, show a message
+  if (!hasNotes) {
+    const noNotesMessage = printWindow.document.createElement('div');
+    noNotesMessage.style.textAlign = 'center';
+    noNotesMessage.style.margin = '50px 0';
+    noNotesMessage.style.fontSize = '18px';
+    noNotesMessage.style.color = '#666';
+    noNotesMessage.textContent = 'אין הערות שמורות לבחינה זו';
+    notesContainer.appendChild(noNotesMessage);
+  }
+  
+  // Focus the new window
+  printWindow.focus();
+}
+
+// Modify the addPrintNotesButton function to place the button properly
+function addPrintNotesButton() {
+  const resultsContainer = document.getElementById('results-container');
+  if (!resultsContainer) return;
+  
+  // Check if button already exists
+  if (document.getElementById('print-notes-btn')) return;
+  
+  const printNotesBtn = document.createElement('button');
+  printNotesBtn.id = 'print-notes-btn';
+  printNotesBtn.className = 'return-to-exam no-print';
+  printNotesBtn.textContent = 'הדפס הערות';
+  printNotesBtn.style.backgroundColor = '#4a90e2';
+  printNotesBtn.style.display = 'block';
+  printNotesBtn.style.margin = '20px auto';
+  printNotesBtn.onclick = createPrintableNotesPage;
+  
+  // Get the return button
+  const returnBtn = document.getElementById('return-btn');
+  const printBtn = document.getElementById('print-btn');
+  
+  if (returnBtn && printBtn) {
+    // Add it after the return button, before print button
+    resultsContainer.insertBefore(printNotesBtn, printBtn);
+  } else {
+    // Just append it if the other buttons aren't found
+    resultsContainer.appendChild(printNotesBtn);
+  }
+}
+
+// Add CSS for print media
+function addNoteStyles() {
+  const style = document.createElement('style');
+  style.textContent = `
+    @media print {
+      #toggle-notes-btn, #notes-sidebar {
+        display: none !important;
+      }
+    }
+    
+    @media screen and (max-width: 768px) {
+      #notes-sidebar {
+        width: 250px !important;
+      }
+      #toggle-notes-btn {
+        font-size: 0.9em !important;
+        padding: 5px 10px !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+	// Create a helper function to ensure notes sync when changing questions
+function changeQuestion(newIndex) {
+  if (notesVisible) {
+    closeNotes();
+  }
+  currentQuestionIndex = newIndex;
+  resetShowingAnswers();
+  renderCurrentQuestion();
+  updateControls();
+}
+// Override existing functions to integrate notes functionality
+
+// Modified nextQuestion function to handle notes
+const originalNextQuestion = nextQuestion;
+nextQuestion = function() {
+  if (currentQuestionIndex < questions.length - 1) {
+    changeQuestion(currentQuestionIndex + 1);
+  }
+};
+
+// Modified prevQuestion function to handle notes
+const originalPrevQuestion = prevQuestion;
+prevQuestion = function() {
+  if (currentQuestionIndex > 0) {
+    changeQuestion(currentQuestionIndex - 1);
+  }
+};
+
+// Modified renderStudyMode function to add notes in study mode
+const originalRenderStudyMode = renderStudyMode;
+renderStudyMode = function() {
+  originalRenderStudyMode();
+  // Add notes to study mode
+  setTimeout(addNotesToStudyMode, 100);
+};
+
+// Modified setMode function to handle study mode
+const originalSetMode = setMode;
+setMode = function(newMode) {
+  originalSetMode(newMode);
+  
+  // Handle notes panel visibility based on mode
+  const toggleButton = document.getElementById('toggle-notes-btn');
+  if (toggleButton) {
+    if (mode === 'study') {
+      toggleButton.style.display = 'none';
+      closeNotes();
+    } else {
+      toggleButton.style.display = 'block';
+    }
+  }
+};
+
+// Modified showResults function to hide the notes button
+const originalShowResults = showResults;
+showResults = function() {
+  // First hide the notes toggle button
+  const toggleButton = document.getElementById('toggle-notes-btn');
+  if (toggleButton) {
+    toggleButton.style.display = 'none';
+  }
+  
+  // Close notes panel if it's open
+  closeNotes();
+  
+  // Call the original function
+  originalShowResults();
+  
+  // Add print notes button to results
+  setTimeout(addPrintNotesButton, 100);
+};
+
+// Initialize the notes functionality
+window.addEventListener('load', function() {
+  loadNotes();
+  addNotesPanel();
+  addNoteStyles();
+  updateNavIndicators();
+});
   </script>
 </body>
 </html>
