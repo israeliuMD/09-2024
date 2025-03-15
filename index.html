@@ -2325,10 +2325,7 @@ function generateSidebarNavigation() {
     navItem.className = 'nav-item';
     navItem.textContent = i + 1;
     navItem.addEventListener('click', function() {
-      currentQuestionIndex = i;
-      resetShowingAnswers(); // Use the helper function
-      renderCurrentQuestion();
-      updateControls();
+      changeQuestion(i); // Use the new helper function
     });
     
     navContainer.appendChild(navItem);
@@ -2474,8 +2471,16 @@ function generateSidebarNavigation() {
 function returnToExam(questionIndex = null) {
   // If a question index is provided, go to that question
   if (questionIndex !== null) {
-    currentQuestionIndex = questionIndex;
+    changeQuestion(questionIndex);
+  } else {
+    // Otherwise just close the results panel
+    document.getElementById('results-container').style.display = 'none';
+    document.getElementById('question-container').style.display = 'block';
+    document.getElementById('controls').style.display = 'flex';
+    renderCurrentQuestion();
+    updateControls();
   }
+}
   
   resetShowingAnswers(); // Use the helper function
   
@@ -2965,7 +2970,16 @@ function changeQuestion(newIndex) {
   updateControls();
 }
 // Override existing functions to integrate notes functionality
-
+// Create a helper function to ensure notes sync when changing questions
+function changeQuestion(newIndex) {
+  if (notesVisible) {
+    closeNotes();
+  }
+  currentQuestionIndex = newIndex;
+  resetShowingAnswers();
+  renderCurrentQuestion();
+  updateControls();
+}
 // Modified nextQuestion function to handle notes
 const originalNextQuestion = nextQuestion;
 nextQuestion = function() {
