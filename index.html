@@ -3047,6 +3047,329 @@ window.addEventListener('load', function() {
   addNoteStyles();
   updateNavIndicators();
 });
+	  // Store references data for the exam
+let questionReferences = {};
+
+// Function to load references when the page loads
+function loadReferences() {
+  // Create URL for the references page
+  const referencesUrl = "https://israeliumd.github.io/ophthalmology-index/09-2024-references.html";
+  
+  // Fetch the references HTML
+  fetch(referencesUrl)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch references (${response.status})`);
+      }
+      return response.text();
+    })
+    .then(html => {
+      // Create a temporary DOM element to parse the HTML
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      
+      // Get the references table
+      const table = doc.querySelector('table');
+      if (table) {
+        // Extract references from table rows
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+          const cells = row.querySelectorAll('td');
+          if (cells.length >= 3) {
+            const questionNumber = cells[0].textContent.trim();
+            const reference = cells[2].textContent.trim();
+            questionReferences[questionNumber] = reference;
+          }
+        });
+        
+        console.log('References loaded successfully:', Object.keys(questionReferences).length);
+        
+        // If notes panel is already visible, update it to show references
+        if (notesVisible) {
+          updateNotesContent();
+        }
+        
+        // Update study mode if active
+        if (mode === 'study') {
+          setTimeout(addNotesToStudyMode, 100);
+        }
+      }
+    })
+    .catch(error => {
+      console.error('Error loading references:', error);
+    });
+}
+
+// Override the existing updateNotesContent function
+const originalUpdateNotesContent = updateNotesContent;
+updateNotesContent = function() {
+  if (!notesVisible) return;
+  
+  const notesContent = document.getElementById('notes-content');
+  const question = questions[currentQuestionIndex];
+  const questionId = question.id;
+  
+  // Clear previous content
+  notesContent.innerHTML = '';
+  
+  // Create the question number display
+  const questionNumber = document.createElement('div');
+  questionNumber.textContent = `שאלה ${questionId}`;
+  questionNumber.style.fontWeight = 'bold';
+  questionNumber.style.marginBottom = '10px';
+  questionNumber.style.textAlign = 'center';
+  questionNumber.style.fontFamily = 'Arial, sans-serif';
+  notesContent.appendChild(questionNumber);
+  
+  // Add reference information if available
+  if (questionReferences[questionId]) {
+    const referenceInfo = document.createElement('div');
+    referenceInfo.className = 'reference-info';
+    referenceInfo.textContent = questionReferences[questionId];
+    referenceInfo.style.backgroundColor = '#f0f8ff';
+    referenceInfo.style.padding = '8px';
+    referenceInfo.style.marginBottom = '10px';
+    referenceInfo.style.borderRadius = '4px';
+    referenceInfo.style.borderRight = '3px solid #4a90e2';
+    referenceInfo.style.fontFamily = 'Arial, sans-serif';
+    referenceInfo.style.fontSize = '0.9em';
+    referenceInfo.style.direction = 'rtl';
+    notesContent.appendChild(referenceInfo);
+  }
+  
+  // Create the notes textarea
+  const notesTextarea = document.createElement('textarea');
+  notesTextarea.id = `notes-${questionId}`;
+  notesTextarea.value = questionNotes[questionId] || '';
+  notesTextarea.placeholder = 'רשום את ההערות שלך כאן...';
+  notesTextarea.style.width = '100%';
+  notesTextarea.style.height = questionReferences[questionId] ? 'calc(100vh - 200px)' : 'calc(100vh - 150px)';
+  notesTextarea.style.padding = '10px';
+  notesTextarea.style.borderRadius = '4px';
+  notesTextarea.style.border = '1px solid #ddd';
+  notesTextarea.style.fontFamily = 'Arial, sans-serif';
+  notesTextarea.style.fontSize = '1em';
+  notesTextarea.style.direction = 'rtl';
+  notesTextarea.style.resize = 'none';
+  notesTextarea.style.boxSizing = 'border-box';
+  
+  // Add event listener to save notes when text changes
+  notesTextarea.addEventListener('input', function() {
+    questionNotes[questionId] = this.value;
+    saveNotes();
+    updateNavIndicators();
+  });
+  
+  notesContent.appendChild(notesTextarea);
+};
+
+// Override the existing addNotesToStudyMode function
+const originalAddNotesToStudyMode = addNotesToStudyMode;
+addNotesToStudyMode = function() {
+  const questionContainers = document.querySelectorAll('.question-container');
+  questionContainers.forEach(container => {
+    const questionNumberElem = container.querySelector('.question-number');
+    if (questionNumberElem) {
+      const questionIdMatch = questionNumberElem.textContent.match(/\d+/);
+      if (questionIdMatch) {
+        const questionId = parseInt(questionIdMatch[0]);
+        const questionNoteText = questionNotes[questionId] || '';
+        
+        // Remove any existing notes container
+        const existingNotes = container.querySelector('.study-notes-container');
+        if (existingNotes) {
+          existingNotes.remove();
+        }
+        
+        // Only add notes container if there are notes or a reference exists
+        if (questionNoteText.trim() || questionReferences[questionId]) {
+          const notesContainer = document.createElement('div');
+          notesContainer.className = 'study-notes-container';
+          notesContainer.style.marginTop = '20px';
+          notesContainer.style.padding = '10px';
+          notesContainer.style.backgroundColor = '#f0f8ff';
+          notesContainer.style.borderRadius = '8px';
+          notesContainer.style.border = '1px solid #b0c4de';
+          
+          let notesHTML = '<div style="font-weight: bold; margin-bottom: 5px; font-family: Arial, sans-serif;">הערות אישיות:</div>';
+          
+          // Add reference if available
+          if (questionReferences[questionId]) {
+            notesHTML += `<div style="padding: 8px; margin-bottom: 10px; background-color: #e6f2ff; border-radius: 4px; border-right: 3px solid #4a90e2; font-family: Arial, sans-serif; font-size: 0.9em; direction: rtl;">${questionReferences[questionId]}</div>`;
+          }
+          
+          // Add user notes if available
+          if (questionNoteText.trim()) {
+            notesHTML += `<div style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #fff; direction: rtl; white-space: pre-wrap; font-family: Arial, sans-serif;">${questionNoteText}</div>`;
+          }
+          
+          notesContainer.innerHTML = notesHTML;
+          container.appendChild(notesContainer);
+        }
+      }
+    }
+  });
+};
+
+// Override the existing createPrintableNotesPage function
+const originalCreatePrintableNotesPage = createPrintableNotesPage;
+createPrintableNotesPage = function() {
+  // Create a new window for the printable notes
+  const printWindow = window.open('', '_blank');
+  
+  // Write the HTML content for the printable page
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html dir="rtl">
+    <head>
+      <title>הערות לבחינה 06-2020</title>
+      <meta charset="UTF-8">
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          padding: 20px;
+          direction: rtl;
+        }
+        .notes-title {
+          text-align: center;
+          font-size: 24px;
+          margin-bottom: 30px;
+          font-weight: bold;
+        }
+        .question-notes {
+          margin-bottom: 20px;
+          padding: 15px;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          break-inside: avoid;
+        }
+        .question-number {
+          font-weight: bold;
+          margin-bottom: 10px;
+          font-size: 18px;
+          border-bottom: 1px solid #eee;
+          padding-bottom: 5px;
+        }
+        .reference-info {
+          padding: 8px;
+          margin-bottom: 10px;
+          background-color: #e6f2ff;
+          border-radius: 4px;
+          border-right: 3px solid #4a90e2;
+          font-size: 0.9em;
+        }
+        .notes-content {
+          white-space: pre-wrap;
+          padding: 10px;
+          background-color: #f9f9f9;
+          border-radius: 4px;
+          min-height: 40px;
+        }
+        @media print {
+          body {
+            font-size: 12pt;
+          }
+          .no-print {
+            display: none;
+          }
+          .question-notes {
+            page-break-inside: avoid;
+          }
+        }
+        .print-btn {
+          display: block;
+          margin: 20px auto;
+          padding: 10px 20px;
+          background-color: #4a90e2;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 16px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="notes-title">הערות לבחינה 06-2020</div>
+      <button class="print-btn no-print" onclick="window.print()">הדפס הערות</button>
+      <div id="notes-container"></div>
+      <button class="print-btn no-print" onclick="window.print()">הדפס הערות</button>
+    </body>
+    </html>
+  `);
+  
+  // Add all notes to the container
+  const notesContainer = printWindow.document.getElementById('notes-container');
+  let hasNotes = false;
+  
+  // Sort question IDs numerically
+  const questionIds = Object.keys(questionNotes)
+    .map(id => parseInt(id))
+    .filter(id => questionNotes[id]?.trim() || questionReferences[id])
+    .sort((a, b) => a - b);
+  
+  for (const questionId of questionIds) {
+    const noteText = questionNotes[questionId] || '';
+    hasNotes = true;
+    
+    const questionNotesDiv = printWindow.document.createElement('div');
+    questionNotesDiv.className = 'question-notes';
+    
+    const questionNumberDiv = printWindow.document.createElement('div');
+    questionNumberDiv.className = 'question-number';
+    questionNumberDiv.textContent = `שאלה ${questionId}`;
+    
+    questionNotesDiv.appendChild(questionNumberDiv);
+    
+    // Add reference if available
+    if (questionReferences[questionId]) {
+      const referenceDiv = printWindow.document.createElement('div');
+      referenceDiv.className = 'reference-info';
+      referenceDiv.textContent = questionReferences[questionId];
+      questionNotesDiv.appendChild(referenceDiv);
+    }
+    
+    // Add notes content if available
+    if (noteText.trim()) {
+      const notesContentDiv = printWindow.document.createElement('div');
+      notesContentDiv.className = 'notes-content';
+      notesContentDiv.textContent = noteText;
+      questionNotesDiv.appendChild(notesContentDiv);
+    }
+    
+    notesContainer.appendChild(questionNotesDiv);
+  }
+  
+  // If no notes exist, show a message
+  if (!hasNotes) {
+    const noNotesMessage = printWindow.document.createElement('div');
+    noNotesMessage.style.textAlign = 'center';
+    noNotesMessage.style.margin = '50px 0';
+    noNotesMessage.style.fontSize = '18px';
+    noNotesMessage.style.color = '#666';
+    noNotesMessage.textContent = 'אין הערות שמורות לבחינה זו';
+    notesContainer.appendChild(noNotesMessage);
+  }
+  
+  // Focus the new window
+  printWindow.focus();
+};
+
+// Add this to your window.onload function or existing initialization
+const originalWindowOnload = window.onload;
+window.onload = function() {
+  // Call the original onload function if it exists
+  if (typeof originalWindowOnload === 'function') {
+    originalWindowOnload();
+  } else {
+    // Otherwise initialize the app ourselves
+    generateSidebarNavigation();
+    init();
+  }
+  
+  // Load references after the app has initialized
+  loadReferences();
+};
   </script>
 </body>
 </html>
