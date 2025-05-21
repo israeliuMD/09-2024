@@ -2663,7 +2663,7 @@ function closeNotes() {
   notesVisible = false;
 }
 
-// Update the notes content based on the current question
+// Find this function in your code and add the toggle button inside it
 function updateNotesContent() {
   if (!notesVisible) return;
   
@@ -2683,13 +2683,40 @@ function updateNotesContent() {
   questionNumber.style.fontFamily = 'Arial, sans-serif';
   notesContent.appendChild(questionNumber);
   
+  // Add reference information if available
+  if (questionReferences[questionId]) {
+    const referenceInfo = document.createElement('div');
+    referenceInfo.className = 'reference-info';
+    referenceInfo.textContent = questionReferences[questionId];
+    referenceInfo.style.backgroundColor = '#f0f8ff';
+    referenceInfo.style.padding = '8px';
+    referenceInfo.style.marginBottom = '10px';
+    referenceInfo.style.borderRadius = '4px';
+    referenceInfo.style.borderRight = '3px solid #4a90e2';
+    referenceInfo.style.fontFamily = 'Arial, sans-serif';
+    referenceInfo.style.fontSize = '0.9em';
+    referenceInfo.style.direction = 'rtl';
+    notesContent.appendChild(referenceInfo);
+  }
+  
+  // ADD THIS: Direction toggle button
+  const directionToggle = document.createElement('button');
+  directionToggle.textContent = 'LTR ↔ RTL';
+  directionToggle.style.marginBottom = '10px';
+  directionToggle.style.padding = '5px 10px';
+  directionToggle.style.backgroundColor = '#f0f0f0';
+  directionToggle.style.border = '1px solid #ddd';
+  directionToggle.style.borderRadius = '4px';
+  directionToggle.style.cursor = 'pointer';
+  notesContent.appendChild(directionToggle);
+  
   // Create the notes textarea
   const notesTextarea = document.createElement('textarea');
   notesTextarea.id = `notes-${questionId}`;
   notesTextarea.value = questionNotes[questionId] || '';
   notesTextarea.placeholder = 'רשום את ההערות שלך כאן...';
   notesTextarea.style.width = '100%';
-  notesTextarea.style.height = 'calc(100vh - 150px)';
+  notesTextarea.style.height = questionReferences[questionId] ? 'calc(100vh - 200px)' : 'calc(100vh - 150px)';
   notesTextarea.style.padding = '10px';
   notesTextarea.style.borderRadius = '4px';
   notesTextarea.style.border = '1px solid #ddd';
@@ -2707,6 +2734,17 @@ function updateNotesContent() {
   });
   
   notesContent.appendChild(notesTextarea);
+  
+  // ADD THIS: Event listener for the toggle button
+  directionToggle.addEventListener('click', function() {
+    if (notesTextarea.style.direction === 'rtl') {
+      notesTextarea.style.direction = 'ltr';
+      notesTextarea.style.textAlign = 'left';
+    } else {
+      notesTextarea.style.direction = 'rtl';
+      notesTextarea.style.textAlign = 'right';
+    }
+  });
 }
 
 // Add notes to study mode
