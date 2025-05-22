@@ -381,15 +381,16 @@
       <button class="return-to-exam no-print" id="print-btn" onclick="window.print()">הדפס תוצאות</button>
     </div>
     
-    <div id="controls" class="controls no-print">
-      <button id="prev-btn" onclick="prevQuestion()" disabled>הקודם</button>
-      <div>
-        <span id="question-counter"></span>
-        <button id="finish-btn" onclick="showResults()" class="finish-btn" style="display: none;">סיים בחינה</button>
-      </div>
-      <button id="next-btn" onclick="nextQuestion()">הבא</button>
-    </div>
+<div id="controls" class="controls no-print">
+  <button id="prev-btn" onclick="prevQuestion()" disabled>הקודם</button>
+  <div>
+    <button id="toggle-answers-btn-bottom" onclick="toggleAnswers()" style="display: none;">הצג תשובות</button>
+    <span id="question-counter"></span>
+    <button id="finish-btn" onclick="showResults()" class="finish-btn" style="display: none;">סיים בחינה</button>
   </div>
+  <button id="next-btn" onclick="nextQuestion()">הבא</button>
+</div>
+ 
   
   <script>
     // Define the questions
@@ -2302,10 +2303,12 @@ function resetShowingAnswers() {
       if (mode === 'study') {
         document.getElementById('controls').style.display = 'none';
         document.getElementById('toggle-answers-btn').style.display = 'none';
+	document.getElementById('toggle-answers-btn-bottom').style.display = 'none';
         document.getElementById('sidebar').style.display = 'none';
       } else {
         document.getElementById('controls').style.display = 'flex';
         document.getElementById('toggle-answers-btn').style.display = 'inline-block';
+	document.getElementById('toggle-answers-btn-bottom').style.display = 'inline-block';
         document.getElementById('sidebar').style.display = 'block';
       }
       
@@ -2355,20 +2358,24 @@ function generateSidebarNavigation() {
     }
     
     // Toggle showing answers
-    function toggleAnswers() {
-      showingAnswers = !showingAnswers;
-      
-      const btn = document.getElementById('toggle-answers-btn');
-      btn.textContent = showingAnswers ? 'הסתר תשובות' : 'הצג תשובות';
-      
-      if (showingAnswers) {
-        calculateAndShowScore();
-      } else {
-        document.getElementById('score-display').style.display = 'none';
-      }
-      
-      renderCurrentQuestion();
-    }
+function toggleAnswers() {
+  showingAnswers = !showingAnswers;
+  
+  const btn = document.getElementById('toggle-answers-btn');
+  const btnBottom = document.getElementById('toggle-answers-btn-bottom');
+  const newText = showingAnswers ? 'הסתר תשובות' : 'הצג תשובות';
+  
+  btn.textContent = newText;
+  btnBottom.textContent = newText;
+  
+  if (showingAnswers) {
+    calculateAndShowScore();
+  } else {
+    document.getElementById('score-display').style.display = 'none';
+  }
+  
+  renderCurrentQuestion();
+}
     
     // Calculate and display score
     function calculateAndShowScore() {
