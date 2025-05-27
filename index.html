@@ -66,12 +66,13 @@
       border-color: #4a90e2;
     }
     
-    .main-content {
-      margin-right: 350px;
-      padding: 50px;
-      max-width: 800px;
-      margin-left: auto;
-    }
+.main-content {
+  margin-top: 60px;
+  margin-right: 350px;
+  padding: 50px;
+  max-width: 800px;
+  margin-left: auto;
+}
     .question-container {
       background-color: white;
       border-radius: 8px;
@@ -94,8 +95,8 @@
       margin: 15px 0;
     }
     .image-container img {
-      max-width: 200%;
-      max-height: 600px;
+      max-width: 100%;
+      max-height: auto;
       border: 1px solid #ddd;
       border-radius: 4px;
     }
@@ -344,7 +345,38 @@
     font-size: 0.9em;
   }
 }
+	    #save-exam-btn, #load-exam-btn, #clear-exam-btn {
+  margin: 0 5px;
+}
+
+@media screen and (max-width: 768px) {
+  #save-exam-btn, #load-exam-btn, #clear-exam-btn {
+    margin: 5px 0;
+    display: block;
+    width: 100%;
+  }
+}
     }
+	  .control-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border-bottom: 2px solid #ddd;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  z-index: 200;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  flex-wrap: wrap;
+}
+
+.control-panel button {
+  padding: 6px 12px;
+  font-size: 0.9em;
+}
   </style>
 </head>
 <body>
@@ -358,11 +390,18 @@
   <div class="main-content">
     <h1>בחינת מחלות עיניים - שלב א' מועד 09.2024</h1>
     
-    <div class="mode-toggle no-print">
-      <button id="exam-mode-btn" onclick="setMode('exam')" disabled>מצב בחינה</button>
-      <button id="study-mode-btn" onclick="setMode('study')">מצב למידה</button>
-      <button id="toggle-answers-btn" onclick="toggleAnswers()" style="display: none;">הצג תשובות</button>
-    </div>
+<div class="control-panel no-print">
+  <button id="exam-mode-btn" onclick="setMode('exam')" disabled>מצב בחינה</button>
+  <button id="study-mode-btn" onclick="setMode('study')">מצב למידה</button>
+  <button id="save-exam-btn" onclick="saveExam()">שמור בחינה</button>
+  <button id="load-exam-btn" onclick="loadExam()">טען בחינה</button>
+  <button id="restart-exam-btn" onclick="restartExam()">התחל מחדש</button>
+  <button id="finish-btn" onclick="showResults()" class="finish-btn" style="display: none;">סיים בחינה</button>
+</div>
+
+<div class="mode-toggle no-print">
+  <button id="toggle-answers-btn" onclick="toggleAnswers()" style="display: none;">הצג תשובות</button>
+</div>
     
     <div id="score-display" style="display: none;" class="score-container">
       <div class="score-title">ציון</div>
@@ -390,7 +429,7 @@
   </div>
   <button id="next-btn" onclick="nextQuestion()">הבא</button>
 </div>
- 
+   
   
   <script>
     // Define the questions
@@ -2115,7 +2154,7 @@
       // ... rest of the questions remain the same
     ];
     
-    // Variables to track state
+  // Variables to track state
     let currentQuestionIndex = 0;
     let selectedAnswers = {};
     let showingAnswers = false;
@@ -2262,6 +2301,9 @@
       
       selectedAnswers[questionId] = answer;
       renderCurrentQuestion();
+	    autoSaveExamState();
+	    autoSaveProgress();
+
     }
     
     // Navigation functions
@@ -2272,6 +2314,7 @@ function nextQuestion() {
     resetShowingAnswers(); // Use the helper function
     renderCurrentQuestion();
     updateControls();
+	  autoSaveExamState();
   }
 }
     
@@ -2282,6 +2325,7 @@ function prevQuestion() {
     resetShowingAnswers(); // Use the helper function
     renderCurrentQuestion();
     updateControls();
+	  autoSaveExamState();
   }
 }
 
@@ -2318,6 +2362,7 @@ function resetShowingAnswers() {
     
     // Generate and update the sidebar navigation
     // Updated generateSidebarNavigation function
+// Generate and update the sidebar navigation
 function generateSidebarNavigation() {
   const navContainer = document.getElementById('question-nav');
   navContainer.innerHTML = '';
@@ -2474,7 +2519,6 @@ function toggleAnswers() {
     }
     
     // Return to the exam
-    // Updated returnToExam function
 function returnToExam(questionIndex = null) {
   // If a question index is provided, go to that question
   if (questionIndex !== null) {
@@ -2528,13 +2572,130 @@ function returnToExam(questionIndex = null) {
       renderCurrentQuestion();
       updateControls();
     }
+    // Save exam progress
+// Save exam progress as JSON file (manual save)
+function saveExam() {
+  const examData = {
+    currentQuestionIndex: currentQuestionIndex,
+    selectedAnswers: selectedAnswers,
+    timestamp: new Date().toISOString(),
+    examTitle: "בחינת מחלות עיניים - שלב א' מועד 09.2024"
+  };
+  
+  // Create and download JSON file
+  const dataStr = JSON.stringify(examData, null, 2);
+  const dataBlob = new Blob([dataStr], {type: 'application/json'});
+  
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(dataBlob);
+  link.download = 'exam-progress-09-2024.json';
+  link.click();
+  
+  // Show confirmation
+  const btn = document.getElementById('save-exam-btn');
+  const originalText = btn.textContent;
+  btn.textContent = 'נשמר!';
+  btn.style.backgroundColor = '#4caf50';
+  
+  setTimeout(() => {
+    btn.textContent = originalText;
+    btn.style.backgroundColor = '#4a90e2';
+  }, 2000);
+}
+
+// Load exam progress from JSON file
+function loadExam() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  
+  input.onchange = function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
     
-    // Initialize the app when the page loads
-    window.onload = function() {
-      generateSidebarNavigation();
-      init();
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const examData = JSON.parse(e.target.result);
+        
+        // Restore progress
+        currentQuestionIndex = examData.currentQuestionIndex || 0;
+        selectedAnswers = examData.selectedAnswers || {};
+        
+        // Update display
+        renderCurrentQuestion();
+        updateControls();
+        autoSaveProgress(); // Save to browser memory too
+        
+        // Show confirmation
+        const btn = document.getElementById('load-exam-btn');
+        const originalText = btn.textContent;
+        btn.textContent = 'נטען!';
+        btn.style.backgroundColor = '#4caf50';
+        
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.style.backgroundColor = '#4a90e2';
+        }, 2000);
+        
+      } catch (error) {
+        alert('שגיאה בקריאת קובץ הבחינה');
+      }
+    };
+    reader.readAsText(file);
+  };
+  
+  input.click();
+}
+
+// Auto-save to browser memory (happens automatically)
+function autoSaveProgress() {
+  const examData = {
+    currentQuestionIndex: currentQuestionIndex,
+    selectedAnswers: selectedAnswers,
+    timestamp: new Date().toISOString()
+  };
+  localStorage.setItem('examProgress-09-2024-auto', JSON.stringify(examData));
+}
+
+// Auto-load from browser memory when page loads
+function autoLoadProgress() {
+  const savedData = localStorage.getItem('examProgress-09-2024-auto');
+  if (savedData) {
+    try {
+      const examData = JSON.parse(savedData);
+      currentQuestionIndex = examData.currentQuestionIndex || 0;
+      selectedAnswers = examData.selectedAnswers || {};
+    } catch (e) {
+      // If there's an error, just start fresh
     }
-	    
+  }
+}
+
+// Restart exam
+function restartExam() {
+  if (confirm('האם אתה בטוח שברצונך להתחיל מחדש? כל התשובות יימחקו.')) {
+    currentQuestionIndex = 0;
+    selectedAnswers = {};
+    showingAnswers = false;
+    
+    // Reset UI
+    document.getElementById('toggle-answers-btn').textContent = 'הצג תשובות';
+    document.getElementById('score-display').style.display = 'none';
+    document.getElementById('results-container').style.display = 'none';
+    document.getElementById('question-container').style.display = 'block';
+    
+    renderCurrentQuestion();
+    updateControls();
+  }
+}
+    // Initialize the app when the page loads
+window.onload = function() {
+  autoLoadProgress(); // Load previous progress automatically
+  generateSidebarNavigation();
+  init();
+}
+
 	// Add this code right before the closing +script+ tag in your HTML file
 
 // Object to store notes for each question
@@ -2543,7 +2704,169 @@ let notesVisible = false;
 
 // Load notes from localStorage when the page loads
 // Modify the loadNotes and saveNotes functions to use more explicit exam identifiers
+// Auto-save functionality
+function autoSaveExamState() {
+  const examId = window.location.pathname.split('/').filter(Boolean).join('-');
+  const finalExamId = examId || document.title.replace(/\s+/g, '-').toLowerCase();
+  
+  const examState = {
+    selectedAnswers: selectedAnswers,
+    currentQuestionIndex: currentQuestionIndex,
+    timestamp: new Date().toISOString(),
+    examId: finalExamId,
+    examTitle: document.title
+  };
+  
+  localStorage.setItem(`examState-${finalExamId}`, JSON.stringify(examState));
+}
 
+// Load exam state from LocalStorage
+function loadExamState() {
+  const examId = window.location.pathname.split('/').filter(Boolean).join('-');
+  const finalExamId = examId || document.title.replace(/\s+/g, '-').toLowerCase();
+  
+  const savedState = localStorage.getItem(`examState-${finalExamId}`);
+  
+  if (savedState) {
+    try {
+      const state = JSON.parse(savedState);
+      
+      const savedDate = new Date(state.timestamp);
+      const dateString = savedDate.toLocaleString('he-IL', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      const answeredCount = Object.keys(state.selectedAnswers).length;
+      const message = `נמצאה בחינה שמורה מתאריך ${dateString}\nענית על ${answeredCount} שאלות מתוך ${questions.length}\n\nהאם ברצונך להמשיך מהמקום בו הפסקת?`;
+      
+      if (confirm(message)) {
+        selectedAnswers = state.selectedAnswers;
+        currentQuestionIndex = state.currentQuestionIndex;
+        renderCurrentQuestion();
+        updateControls();
+        updateSidebarNavigation();
+        return true;
+      }
+    } catch (e) {
+      console.error('Error loading saved state:', e);
+    }
+  }
+  
+  return false;
+}
+
+// Download exam state as JSON file
+function downloadExamState() {
+  const examState = {
+    selectedAnswers: selectedAnswers,
+    currentQuestionIndex: currentQuestionIndex,
+    timestamp: new Date().toISOString(),
+    examTitle: document.title,
+    questionNotes: questionNotes
+  };
+  
+  const dataStr = JSON.stringify(examState, null, 2);
+  const dataBlob = new Blob([dataStr], { type: 'application/json' });
+  
+  const fileName = `exam-save-${new Date().toISOString().split('T')[0]}.json`;
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(dataBlob);
+  link.download = fileName;
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  showSaveConfirmation('הבחינה נשמרה כקובץ');
+}
+
+// Upload and load exam state from file
+function uploadExamState() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  
+  input.onchange = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const state = JSON.parse(e.target.result);
+        
+        if (!state.selectedAnswers || typeof state.currentQuestionIndex !== 'number') {
+          alert('קובץ לא תקין');
+          return;
+        }
+        
+        selectedAnswers = state.selectedAnswers || {};
+        currentQuestionIndex = state.currentQuestionIndex || 0;
+        
+        if (state.questionNotes) {
+          questionNotes = state.questionNotes;
+          saveNotes();
+        }
+        
+        renderCurrentQuestion();
+        updateControls();
+        updateSidebarNavigation();
+        
+        showSaveConfirmation('הבחינה נטענה בהצלחה');
+      } catch (e) {
+        alert('שגיאה בטעינת הקובץ');
+      }
+    };
+    
+    reader.readAsText(file);
+  };
+  
+  input.click();
+}
+
+// Show save confirmation message
+function showSaveConfirmation(message = 'הבחינה נשמרה') {
+  const confirmation = document.createElement('div');
+  confirmation.style.cssText = `
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    z-index: 10000;
+    font-family: Arial, sans-serif;
+  `;
+  confirmation.textContent = message;
+  document.body.appendChild(confirmation);
+  
+  setTimeout(() => {
+    confirmation.remove();
+  }, 2000);
+}
+
+// Clear saved exam state
+function clearExamState() {
+  if (confirm('האם אתה בטוח שברצונך למחוק את ההתקדמות השמורה ולהתחיל מחדש?')) {
+    const examId = window.location.pathname.split('/').filter(Boolean).join('-');
+    const finalExamId = examId || document.title.replace(/\s+/g, '-').toLowerCase();
+    
+    localStorage.removeItem(`examState-${finalExamId}`);
+    selectedAnswers = {};
+    currentQuestionIndex = 0;
+    renderCurrentQuestion();
+    updateControls();
+    updateSidebarNavigation();
+    
+    showSaveConfirmation('הבחינה אופסה');
+  }
+}
 // Load notes from localStorage when the page loads
 function loadNotes() {
   // Create a more specific exam identifier based on the URL path
@@ -2670,7 +2993,7 @@ function closeNotes() {
   notesVisible = false;
 }
 
-// Find this function in your code and add the toggle button inside it
+// Update the notes content based on the current question
 function updateNotesContent() {
   if (!notesVisible) return;
   
@@ -2690,40 +3013,13 @@ function updateNotesContent() {
   questionNumber.style.fontFamily = 'Arial, sans-serif';
   notesContent.appendChild(questionNumber);
   
-  // Add reference information if available
-  if (questionReferences[questionId]) {
-    const referenceInfo = document.createElement('div');
-    referenceInfo.className = 'reference-info';
-    referenceInfo.textContent = questionReferences[questionId];
-    referenceInfo.style.backgroundColor = '#f0f8ff';
-    referenceInfo.style.padding = '8px';
-    referenceInfo.style.marginBottom = '10px';
-    referenceInfo.style.borderRadius = '4px';
-    referenceInfo.style.borderRight = '3px solid #4a90e2';
-    referenceInfo.style.fontFamily = 'Arial, sans-serif';
-    referenceInfo.style.fontSize = '0.9em';
-    referenceInfo.style.direction = 'rtl';
-    notesContent.appendChild(referenceInfo);
-  }
-  
-  // ADD THIS: Direction toggle button
-  const directionToggle = document.createElement('button');
-  directionToggle.textContent = 'LTR ↔ RTL';
-  directionToggle.style.marginBottom = '10px';
-  directionToggle.style.padding = '5px 10px';
-  directionToggle.style.backgroundColor = '#f0f0f0';
-  directionToggle.style.border = '1px solid #ddd';
-  directionToggle.style.borderRadius = '4px';
-  directionToggle.style.cursor = 'pointer';
-  notesContent.appendChild(directionToggle);
-  
   // Create the notes textarea
   const notesTextarea = document.createElement('textarea');
   notesTextarea.id = `notes-${questionId}`;
   notesTextarea.value = questionNotes[questionId] || '';
   notesTextarea.placeholder = 'רשום את ההערות שלך כאן...';
   notesTextarea.style.width = '100%';
-  notesTextarea.style.height = questionReferences[questionId] ? 'calc(100vh - 200px)' : 'calc(100vh - 150px)';
+  notesTextarea.style.height = 'calc(100vh - 150px)';
   notesTextarea.style.padding = '10px';
   notesTextarea.style.borderRadius = '4px';
   notesTextarea.style.border = '1px solid #ddd';
@@ -2741,17 +3037,6 @@ function updateNotesContent() {
   });
   
   notesContent.appendChild(notesTextarea);
-  
-  // ADD THIS: Event listener for the toggle button
-  directionToggle.addEventListener('click', function() {
-    if (notesTextarea.style.direction === 'rtl') {
-      notesTextarea.style.direction = 'ltr';
-      notesTextarea.style.textAlign = 'left';
-    } else {
-      notesTextarea.style.direction = 'rtl';
-      notesTextarea.style.textAlign = 'right';
-    }
-  });
 }
 
 // Add notes to study mode
@@ -3014,8 +3299,8 @@ function changeQuestion(newIndex) {
   renderCurrentQuestion();
   updateControls();
 }
-// Override existing functions to integrate notes functionality
-// Create a helper function to ensure notes sync when changing questions
+
+	// Create a helper function to ensure notes sync when changing questions
 function changeQuestion(newIndex) {
   if (notesVisible) {
     closeNotes();
@@ -3025,6 +3310,8 @@ function changeQuestion(newIndex) {
   renderCurrentQuestion();
   updateControls();
 }
+// Override existing functions to integrate notes functionality
+
 // Modified nextQuestion function to handle notes
 const originalNextQuestion = nextQuestion;
 nextQuestion = function() {
@@ -3092,7 +3379,7 @@ window.addEventListener('load', function() {
   addNoteStyles();
   updateNavIndicators();
 });
-	  // Store references data for the exam
+	// Store references data for the exam
 let questionReferences = {};
 
 // Function to load references when the page loads
@@ -3414,6 +3701,10 @@ window.onload = function() {
   
   // Load references after the app has initialized
   loadReferences();
+	 // Load exam state if available
+  setTimeout(() => {
+    loadExamState();
+  }, 100);
 };
   </script>
 </body>
